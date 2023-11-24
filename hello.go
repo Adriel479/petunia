@@ -25,7 +25,7 @@ func main() {
 		case 1:
 			iniciarMonitoramento()
 		case 2:
-			fmt.Println("Exibindo logs...")
+			imprimirLogs()
 		case 0:
 			fmt.Println("Saindo do programa...")
 			os.Exit(0)
@@ -74,8 +74,10 @@ func testarSite(site string) {
 	}
 	if resp.StatusCode == http.StatusOK {
 		fmt.Println("Site:", site, "foi carregado com sucesso!")
+		registrarLog(site, true)
 	} else {
 		fmt.Println("Site:", site, "está com problemas. Status Code:", resp.StatusCode)
+		registrarLog(site, false)
 	}
 }
 
@@ -97,4 +99,22 @@ func lerSistesDoArquivo() []string {
 		sites = append(sites, strings.TrimSpace(linha))
 	}
 	return sites
+}
+
+func registrarLog(site string, estado bool) {
+	arquivo, err := os.OpenFile("log.txt", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
+	if err != nil {
+		log.Println("Ocorreu um erro:", err)
+	}
+	defer arquivo.Close()
+	arquivo.WriteString(fmt.Sprintf("%s - Site: %s - online: %v\n", time.Now().Format("02/01/2006 15:04:05"), site, estado))
+}
+
+func imprimirLogs() {
+	fmt.Println("Exibindo logs...")
+	arr, err := os.ReadFile("log.txt")
+	if err != nil {
+		log.Fatal("Ocorreu um erro: ", err)
+	}
+	fmt.Println(string(arr))
 }
